@@ -1,0 +1,52 @@
+name: masscan build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout masscan
+        uses: actions/checkout@v4
+
+      - name: Set up MSYS2
+        if: ${{ runner.os == 'Windows' }}
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git
+            make
+            mingw-w64-x86_64-gcc
+
+      - name: Build (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: make
+
+      - name: Build (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: msys2 {0}
+        run: |
+          which make
+          make --version
+          make -j
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: masscan-${{ matrix.os }}-x64
+          path: |
+            bin/masscan
+            bin/masscan.exe
