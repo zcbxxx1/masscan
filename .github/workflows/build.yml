@@ -37,7 +37,11 @@ jobs:
       - name: Build (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
-        run: make
+        env:
+          PATH: C:\msys64\usr\bin;C:\msys64\mingw64\bin;${{ env.PATH }}
+        run: |
+          pacman -S --noconfirm mingw-w64-x86_64-make
+          make
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
